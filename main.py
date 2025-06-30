@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.regex_routes import router as regex_router
 from routes.bulk_regex_routes import router as bulk_regex_router
+from routes.jsonpath_routes import router as jsonpath_router
 
 app = FastAPI(
     title="Power Query Extensions API",
@@ -21,6 +22,7 @@ app.add_middleware(
 # Include routers
 app.include_router(regex_router, prefix="/regex", tags=["Regex"])
 app.include_router(bulk_regex_router, prefix="/regex/bulk", tags=["Bulk Regex"])
+app.include_router(jsonpath_router, prefix="/jsonpath", tags=["JSONPath"])
 
 @app.get("/")
 async def root():

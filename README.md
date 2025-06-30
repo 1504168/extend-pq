@@ -13,10 +13,16 @@ A FastAPI-based backend service that provides advanced text processing capabilit
    - Text splitting
    - Pattern validation
    - Support for all standard regex flags
-   - **NEW: Bulk Operations** - Optimized processing for multiple texts
+   - **Bulk Operations** - Optimized processing for multiple texts
+
+2. **JSONPath Functionality** - Query and filter JSON data via REST API
+   - Search JSON data with JSONPath expressions
+   - Load and search JSON files
+   - Multiple JSONPath queries on single data
+   - Batch processing with file loading
+   - Complete JSONPath syntax support
 
 ### 🔄 Planned
-2. JSONPath
 3. XPath  
 4. HTML Selector Functionality
 5. Fuzzy Match
@@ -192,6 +198,74 @@ Optimized for processing multiple texts with the same pattern. The regex pattern
 #### 5. Bulk Operations Info
 `GET /info` - Get information about bulk operations
 
+## JSONPath API Endpoints
+
+### Base URL: `/jsonpath`
+
+JSONPath is a query language for JSON, similar to XPath for XML. It allows you to extract and filter data from JSON documents using expressions.
+
+#### 1. Search JSON Data
+`POST /search` - Search JSON data with JSONPath expression
+
+```json
+{
+  "json_data": "{\"store\":{\"book\":[{\"title\":\"Book 1\",\"price\":10},{\"title\":\"Book 2\",\"price\":15}]}}",
+  "jsonpath": "$.store.book[*].title"
+}
+```
+
+#### 2. Load and Search JSON File
+`POST /load-and-search` - Load JSON file and search with JSONPath
+
+```json
+{
+  "file_path": "C:\\data\\products.json",
+  "jsonpath": "$.products[?(@.price < 50)].name"
+}
+```
+
+#### 3. Search All (Multiple JSONPaths)
+`POST /search-all` - Apply multiple JSONPath expressions to JSON data
+
+```json
+{
+  "json_data": "{\"users\":[{\"name\":\"John\",\"age\":30},{\"name\":\"Jane\",\"age\":25}]}",
+  "jsonpaths": [
+    "$.users[*].name",
+    "$.users[?(@.age > 25)].name",
+    "$.users[0]"
+  ]
+}
+```
+
+#### 4. Load and Search All
+`POST /load-and-search-all` - Load JSON file and apply multiple JSONPath expressions
+
+```json
+{
+  "file_path": "C:\\data\\inventory.json",
+  "jsonpaths": [
+    "$.products[*].name",
+    "$.products[?(@.stock > 0)]",
+    "$.categories[*]"
+  ]
+}
+```
+
+#### 5. JSONPath Info
+`GET /info` - Get JSONPath syntax help and examples
+
+### JSONPath Syntax Examples
+
+- `$` - Root element
+- `$.store.book[*]` - All books in store
+- `$.store.book[0]` - First book
+- `$.store.book[-1]` - Last book
+- `$.store.book[0:2]` - First two books (slice)
+- `$.store.book[?(@.price < 10)]` - Books with price less than 10
+- `$..author` - All authors (recursive descent)
+- `$.store.*` - All things in store
+
 ### 🚀 Performance Benefits
 
 - **Pattern Compilation**: Regex compiled once for all texts
@@ -212,15 +286,18 @@ extend-pq/
 ├── models/                    # Pydantic data models
 │   ├── __init__.py
 │   ├── regex_models.py        # Standard regex request/response models
-│   └── bulk_regex_models.py   # Bulk operations models
+│   ├── bulk_regex_models.py   # Bulk regex operations models
+│   └── jsonpath_models.py     # JSONPath operations models
 ├── services/                  # Business logic
 │   ├── __init__.py
 │   ├── regex_service.py       # Standard regex operations service
-│   └── bulk_regex_service.py  # Bulk operations service
+│   ├── bulk_regex_service.py  # Bulk regex operations service
+│   └── jsonpath_service.py    # JSONPath operations service
 ├── routes/                    # API endpoints
 │   ├── __init__.py
 │   ├── regex_routes.py        # Standard regex API routes
-│   └── bulk_regex_routes.py   # Bulk operations API routes
+│   ├── bulk_regex_routes.py   # Bulk regex operations API routes
+│   └── jsonpath_routes.py     # JSONPath operations API routes
 └── examples/                  # Usage examples
     ├── test_regex_api.py      # Standard API testing examples
     └── test_bulk_regex_api.py # Bulk operations testing examples
@@ -245,7 +322,42 @@ if result["match"]:
     print(f"Found email: {result['match']['match']}")
 ```
 
-### Bulk Operations Example
+### JSONPath Operations Example
+
+```python
+import requests
+
+# Search JSON data with JSONPath
+response = requests.post("http://localhost:8000/jsonpath/search", json={
+    "json_data": '{"store":{"book":[{"title":"Book 1","price":10},{"title":"Book 2","price":15}]}}',
+    "jsonpath": "$.store.book[*].title"
+})
+
+result = response.json()
+if result["success"]:
+    print(f"Found {result['matches_found']} matches: {result['result']}")
+
+# Load and search JSON file
+response = requests.post("http://localhost:8000/jsonpath/load-and-search", json={
+    "file_path": "C:\\data\\products.json",
+    "jsonpath": "$.products[?(@.price < 50)]"
+})
+
+# Multiple JSONPath searches
+response = requests.post("http://localhost:8000/jsonpath/search-all", json={
+    "json_data": '{"users":[{"name":"John","age":30},{"name":"Jane","age":25}]}',
+    "jsonpaths": [
+        "$.users[*].name",
+        "$.users[?(@.age > 25)].name"
+    ]
+})
+
+result = response.json()
+print(f"Processed {result['total_jsonpaths']} JSONPath expressions")
+for res in result['results']:
+    if res['success']:
+        print(f"JSONPath '{res['jsonpath']}': {res['matches_found']} matches")
+```
 
 ```python
 import requests
@@ -343,6 +455,70 @@ let
     ]
 in
     Result
+```
+
+#### JSONPath Operation in Power Query
+```powerquery
+let
+    // Create JSONPath search request
+    RequestData = [
+        json_data = "{""users"":[{""name"":""John"",""age"":30},{""name"":""Jane"",""age"":25}]}",
+        jsonpath = "$.users[*].name"
+    ],
+    
+    // Make the API call
+    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/jsonpath/search", [
+        Headers = [#"Content-Type"="application/json"],
+        Content = Text.ToBinary(Json.FromValue(RequestData))
+    ])),
+    
+    // Extract results
+    ExtractedData = if ApiResponse[success] then ApiResponse[result] else null,
+    
+    // Create final result
+    Result = [
+        Success = ApiResponse[success],
+        JSONPath = ApiResponse[jsonpath],
+        MatchesFound = ApiResponse[matches_found],
+        Data = ExtractedData,
+        ErrorMessage = ApiResponse[error]
+    ]
+in
+    Result
+```
+
+#### Load JSON File with JSONPath in Power Query
+```powerquery
+let
+    // Create file load and search request
+    RequestData = [
+        file_path = "C:\\data\\products.json",
+        jsonpath = "$.products[?(@.price < 100)].name"
+    ],
+    
+    // Make the API call
+    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/jsonpath/load-and-search", [
+        Headers = [#"Content-Type"="application/json"],
+        Content = Text.ToBinary(Json.FromValue(RequestData))
+    ])),
+    
+    // Convert result to table if it's a list
+    ResultData = if ApiResponse[success] and ApiResponse[result] <> null then
+        if Value.Is(ApiResponse[result], type list) then
+            Table.FromList(ApiResponse[result], Splitter.SplitByNothing(), {"ProductName"})
+        else
+            Table.FromRecords({[ProductName = ApiResponse[result]]})
+    else
+        Table.FromRecords({[Error = ApiResponse[error]]}),
+    
+    // Add metadata
+    FinalResult = Table.AddColumn(ResultData, "Metadata", each [
+        FilePath = ApiResponse[file_path],
+        MatchesFound = ApiResponse[matches_found],
+        FileSizeBytes = ApiResponse[file_size_bytes]
+    ])
+in
+    FinalResult
 ```
 
 ## Development
