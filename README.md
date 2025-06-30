@@ -123,7 +123,7 @@ Once the server is running, visit:
 - `LOCALE` - Locale-dependent matching
 
 ### Bulk Operations (⚡ High Performance)
-#### Base URL: `/bulk-regex`
+#### Base URL: `/regex/bulk`
 
 Optimized for processing multiple texts with the same pattern. The regex pattern is compiled once and applied to all texts, providing significant performance improvements.
 
@@ -234,7 +234,7 @@ extend-pq/
 import requests
 
 # Test regex match
-response = requests.post("http://localhost:8000/api/v1/regex/match", json={
+response = requests.post("http://localhost:8000/regex/match", json={
     "pattern": r"\b\w+@\w+\.\w+\b",
     "text": "Email me at john@example.com",
     "flags": ["IGNORECASE"]
@@ -251,7 +251,7 @@ if result["match"]:
 import requests
 
 # Process multiple texts with one API call
-response = requests.post("http://localhost:8000/bulk-regex/match", json={
+response = requests.post("http://localhost:8000/regex/bulk/match", json={
     "pattern": r"\b\w+@\w+\.\w+\b",
     "texts": [
         "Email me at john@example.com",
@@ -274,18 +274,75 @@ for res in result['results']:
 
 You can call these endpoints from Power Query using `Web.Contents()`:
 
+#### Standard Regex Operation
 ```powerquery
 let
-    Source = Json.Document(Web.Contents("http://localhost:8000/api/v1/regex/match", [
+    // Create the request payload
+    RequestData = [
+        pattern = "\b\w+@\w+\.\w+\b",
+        text = "Contact support@example.com",
+        flags = {"IGNORECASE"}
+    ],
+    
+    // Convert to JSON and make the API call
+    Source = Json.Document(Web.Contents("http://localhost:8000/regex/match", [
         Headers = [#"Content-Type"="application/json"],
-        Content = Text.ToBinary(Json.FromValue([
-            pattern = "\b\w+@\w+\.\w+\b",
-            text = "Contact support@example.com",
-            flags = {"IGNORECASE"}
-        ]))
+        Content = Text.ToBinary(Json.FromValue(RequestData))
     ]))
 in
     Source
+```
+
+#### Bulk Regex Operation
+```powerquery
+let
+    // Create the request payload for bulk operation
+    RequestData = [
+        pattern = "\b\w+@\w+\.\w+\b",
+        texts = {"Contact support@example.com", "Email sales@company.org", "No email here"},
+        flags = {"IGNORECASE"}
+    ],
+    
+    // Convert to JSON and make the API call
+    Source = Json.Document(Web.Contents("http://localhost:8000/regex/bulk/match", [
+        Headers = [#"Content-Type"="application/json"],
+        Content = Text.ToBinary(Json.FromValue(RequestData))
+    ]))
+in
+    Source
+```
+
+#### Processing Results in Power Query
+```powerquery
+let
+    // Create the request payload
+    RequestData = [
+        pattern = "\b\w+@\w+\.\w+\b",
+        text = "Contact support@example.com",
+        flags = {"IGNORECASE"}
+    ],
+    
+    // Make the API call
+    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/regex/match", [
+        Headers = [#"Content-Type"="application/json"],
+        Content = Text.ToBinary(Json.FromValue(RequestData))
+    ])),
+    
+    // Extract the match result
+    MatchFound = if ApiResponse[success] and ApiResponse[match] <> null 
+                 then ApiResponse[match][match] 
+                 else null,
+    
+    // Create final result
+    Result = [
+        Success = ApiResponse[success],
+        Pattern = ApiResponse[pattern],
+        InputText = ApiResponse[text],
+        MatchedText = MatchFound,
+        ErrorMessage = ApiResponse[error]
+    ]
+in
+    Result
 ```
 
 ## Development
