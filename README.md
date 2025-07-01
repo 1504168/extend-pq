@@ -47,13 +47,13 @@ pip install -r requirements.txt
 python run.py
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at `http://localhost:28080`
 
 ### API Documentation
 
 Once the server is running, visit:
-- **Interactive API Docs**: http://localhost:8000/docs
-- **ReDoc Documentation**: http://localhost:8000/redoc
+- **Interactive API Docs**: http://localhost:28080/docs
+- **ReDoc Documentation**: http://localhost:28080/redoc
 
 ## Regex API Endpoints
 
@@ -311,7 +311,7 @@ extend-pq/
 import requests
 
 # Test regex match
-response = requests.post("http://localhost:8000/regex/match", json={
+response = requests.post("http://localhost:28080/regex/match", json={
     "pattern": r"\b\w+@\w+\.\w+\b",
     "text": "Email me at john@example.com",
     "flags": ["IGNORECASE"]
@@ -328,7 +328,7 @@ if result["match"]:
 import requests
 
 # Search JSON data with JSONPath
-response = requests.post("http://localhost:8000/jsonpath/search", json={
+response = requests.post("http://localhost:28080/jsonpath/search", json={
     "json_data": '{"store":{"book":[{"title":"Book 1","price":10},{"title":"Book 2","price":15}]}}',
     "jsonpath": "$.store.book[*].title"
 })
@@ -338,13 +338,13 @@ if result["success"]:
     print(f"Found {result['matches_found']} matches: {result['result']}")
 
 # Load and search JSON file
-response = requests.post("http://localhost:8000/jsonpath/load-and-search", json={
+response = requests.post("http://localhost:28080/jsonpath/load-and-search", json={
     "file_path": "C:\\data\\products.json",
     "jsonpath": "$.products[?(@.price < 50)]"
 })
 
 # Multiple JSONPath searches
-response = requests.post("http://localhost:8000/jsonpath/search-all", json={
+response = requests.post("http://localhost:28080/jsonpath/search-all", json={
     "json_data": '{"users":[{"name":"John","age":30},{"name":"Jane","age":25}]}',
     "jsonpaths": [
         "$.users[*].name",
@@ -363,7 +363,7 @@ for res in result['results']:
 import requests
 
 # Process multiple texts with one API call
-response = requests.post("http://localhost:8000/regex/bulk/match", json={
+response = requests.post("http://localhost:28080/regex/bulk/match", json={
     "pattern": r"\b\w+@\w+\.\w+\b",
     "texts": [
         "Email me at john@example.com",
@@ -397,7 +397,7 @@ let
     ],
     
     // Convert to JSON and make the API call
-    Source = Json.Document(Web.Contents("http://localhost:8000/regex/match", [
+    Source = Json.Document(Web.Contents("http://localhost:28080/regex/match", [
         Headers = [#"Content-Type"="application/json"],
         Content = Text.ToBinary(Json.FromValue(RequestData))
     ]))
@@ -416,7 +416,7 @@ let
     ],
     
     // Convert to JSON and make the API call
-    Source = Json.Document(Web.Contents("http://localhost:8000/regex/bulk/match", [
+    Source = Json.Document(Web.Contents("http://localhost:28080/regex/bulk/match", [
         Headers = [#"Content-Type"="application/json"],
         Content = Text.ToBinary(Json.FromValue(RequestData))
     ]))
@@ -435,7 +435,7 @@ let
     ],
     
     // Make the API call
-    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/regex/match", [
+    ApiResponse = Json.Document(Web.Contents("http://localhost:28080/regex/match", [
         Headers = [#"Content-Type"="application/json"],
         Content = Text.ToBinary(Json.FromValue(RequestData))
     ])),
@@ -467,7 +467,7 @@ let
     ],
     
     // Make the API call
-    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/jsonpath/search", [
+    ApiResponse = Json.Document(Web.Contents("http://localhost:28080/jsonpath/search", [
         Headers = [#"Content-Type"="application/json"],
         Content = Text.ToBinary(Json.FromValue(RequestData))
     ])),
@@ -497,7 +497,7 @@ let
     ],
     
     // Make the API call
-    ApiResponse = Json.Document(Web.Contents("http://localhost:8000/jsonpath/load-and-search", [
+    ApiResponse = Json.Document(Web.Contents("http://localhost:28080/jsonpath/load-and-search", [
         Headers = [#"Content-Type"="application/json"],
         Content = Text.ToBinary(Json.FromValue(RequestData))
     ])),

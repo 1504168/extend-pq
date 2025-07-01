@@ -46,8 +46,8 @@ if exist "dist\%EXE_NAME%.exe" (
     echo.
     echo Usage:
     echo   1. Run: dist\%EXE_NAME%.exe
-    echo   2. Server will start at: http://127.0.0.1:8000
-    echo   3. API docs: http://127.0.0.1:8000/docs
+    echo   2. Server will start at: http://127.0.0.1:28080
+    echo   3. API docs: http://127.0.0.1:28080/docs
 ) else (
     echo.
     echo Build failed! Check the output above for errors.
