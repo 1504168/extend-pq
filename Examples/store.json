@@ -1,0 +1,22 @@
+{
+  "store": {
+    "book": [
+      {
+        "category": "fiction",
+        "author": "J.K. Rowling",
+        "title": "Harry Potter",
+        "price": 29.99
+      },
+      {
+        "category": "non-fiction",
+        "author": "Yuval Noah Harari",
+        "title": "Sapiens",
+        "price": 19.99
+      }
+    ],
+    "bicycle": {
+      "color": "red",
+      "price": 99.99
+    }
+  }
+}

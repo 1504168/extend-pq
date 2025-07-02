@@ -1,7 +1,7 @@
 import json
 import os
 from typing import List, Any, Optional
-from jsonpath_ng import parse
+from jsonpath_ng.ext import parse
 from models.jsonpath_models import (
     JsonPathSearchRequest, JsonPathLoadAndSearchRequest,
     JsonPathSearchAllRequest, JsonPathLoadAndSearchAllRequest,
